@@ -1,10 +1,7 @@
 import numpy as np
+import copy
 
 EMPTY = 0
-
-# keep track of possible values for empty cells
-empty_cells = {}
-
 
 # puzzles for testing purposes
 # easy
@@ -58,7 +55,7 @@ def validate(sudoku):
 
 
 # update possible values in empty cells
-def update_empty_cells(board, cell, value):
+def update_empty_cells(board, cell, value, empty_cells):
     for i in range(9):
         # update row
         if board[cell[0], i] == EMPTY:
@@ -71,10 +68,6 @@ def update_empty_cells(board, cell, value):
         for blocky in [cell[1]//3 * 3 + y for y in range(3)]:
             if board[blockx, blocky] == EMPTY:
                 empty_cells[(blockx, blocky)].discard(value)
-
-
-def search(board, empty_cells):
-    return False
 
 
 def find_empty(board):
@@ -100,8 +93,29 @@ def solve_trivial(board, empty_cells):
                 updated = True
                 single_avail_num = tuple(nums)[0]
                 board[cell] = single_avail_num
-                update_empty_cells(board, cell, single_avail_num)
+                update_empty_cells(board, cell, single_avail_num, empty_cells)
                 empty_cells.pop(cell)
+
+
+def search(board, empty_cells):
+    if len(empty_cells) == 0:
+        print("Success!")
+        return True
+    min_cell, min_nums = min(empty_cells.items(), key=lambda x: len(x[1]))
+    # print(f"Search on cell {min_cell}, with nums {min_nums}")
+    for num in min_nums:
+        # print(f"Now trying {num}")
+        board[min_cell] = num
+        # need to store copy of empty_cells
+        orig_empty_cells = copy.deepcopy(empty_cells)
+        update_empty_cells(board, min_cell, num, empty_cells)
+        empty_cells.pop(min_cell)
+        if search(board, empty_cells):
+            return True
+        # undo
+        empty_cells = orig_empty_cells
+        board[min_cell] = 0
+    return False
 
 
 def solve(board):
@@ -117,7 +131,6 @@ def solve(board):
 
     # Pass 3:
     # trial-and-error -> backtrack
-    breakpoint()
     search(board, empty_cells)
 
     return board
