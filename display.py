@@ -1,10 +1,10 @@
-from curses import wrapper
 import curses
 import sudoku
 import numpy as np
 
 
-BOARD_SIZE = 9*2 + 1 + 2*2  # 9 cells + spaces + 3 separators (+1 space)
+BOARD_WIDTH = 9*3 + 2  # 9 cells (+2 spaces) + 2 separators + newline
+BOARD_HEIGHT = 9 + 3  # 9 cells + separators
 
 
 def intchar(int):
@@ -15,26 +15,36 @@ def draw_board(board, screen, cur_pos):
     screen.move(0, 0)
     for i, row in enumerate(board):
         if max(1, i) % 3 == 0:
-            screen.addstr("+".join(["-"*9]*3) + '\n')
+            screen.addstr("+".join(["-"*9]*3))
         rowstr = np.vectorize(lambda x: f" {x if x != 0 else '.'} ")(row)
         if i == cur_pos[0]:
             rowstr[cur_pos[1]] = f">{rowstr[cur_pos[1]][1]}<"
         rowstr = ''.join(np.insert(rowstr,
                                    range(3, len(rowstr), 3),
-                                   '|')) + '\n'
+                                   '|'))
         screen.addstr(rowstr)
 
 
-def loop(screen, board):
+def loop(boardwin, infowin, board):
     cur_pos = [0, 0]
     while True:
-        draw_board(board, screen, cur_pos)
-        screen.refresh()
-        key = screen.getkey()
+        draw_board(board, boardwin, cur_pos)
+        if sudoku.validate(board):
+            infowin.clear()
+            infowin.addstr(1, 1, "Puzzle solved!")
+            infowin.refresh()
+        else:
+            infowin.clear()
+            infowin.addstr(1, 1, "No current info")
+            infowin.refresh()
+        boardwin.refresh()
+        key = boardwin.getkey()
         if key == 'q':
             break
         if key == 'S':
             board = sudoku.solve(board)
+        if key == 'N':
+            board = sudoku.generate(24)  # TODO: select based on difficulty
         # TODO: skip non-empty spots when moving
         if key == 'h':
             cur_pos[1] = max(0, cur_pos[1] - 1)
@@ -51,28 +61,33 @@ def loop(screen, board):
 
 def init(stdscr):
     stdscr.clear()
-    sudokuwin = curses.newwin(BOARD_SIZE*2, BOARD_SIZE*2,
-                              (curses.LINES - BOARD_SIZE)//2,
-                              (curses.COLS - BOARD_SIZE)//2)
+    sudokuwin = curses.newwin(BOARD_HEIGHT, BOARD_WIDTH,
+                              (curses.LINES - BOARD_HEIGHT)//2,
+                              (curses.COLS - BOARD_WIDTH)//2)
     # sudokuwin.border()
+    infowin = curses.newwin(BOARD_HEIGHT, BOARD_WIDTH,
+                            (curses.LINES - BOARD_HEIGHT)//2 + BOARD_HEIGHT,
+                            (curses.COLS - BOARD_WIDTH)//2)
     curses.curs_set(0)  # hide cursor
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_RED, -1)
+    curses.init_pair(2, curses.COLOR_BLUE, -1)
     stdscr.addstr("Sudoku ~ "
                   "move: [h,t,n,s]  "
                   "select number: [1-9]  "
                   "clear: 0   "
                   "solve: [S]  "
                   "new: [N]  "
-                  "quit: [q]")
+                  "quit: [q]", curses.color_pair(2))
     stdscr.refresh()
-    return sudokuwin
+    sudokuwin.refresh()
+    return sudokuwin, infowin
 
 
 def main(stdscr):
-    puzzle = sudoku.puzzle1
-    sudokuwin = init(stdscr)
-    loop(sudokuwin, puzzle)
+    puzzle = sudoku.generate(24)
+    boardwin, infowin = init(stdscr)
+    loop(boardwin, infowin, puzzle)
 
 
-wrapper(main)
+curses.wrapper(main)
