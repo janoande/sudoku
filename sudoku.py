@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import random
 
 EMPTY = 0
 
@@ -53,6 +54,7 @@ def find_empty_cells(board):
     return empty_cells
 
 
+# Note: does not guarantee unique solution
 def search(board, empty_cells):
     if len(empty_cells) == 0:
         return True
@@ -73,4 +75,15 @@ def search(board, empty_cells):
 def solve(board):
     assert search(board, find_empty_cells(board)), \
            f"failed to solve puzzle\n{board}"
+    return board
+
+
+def generate(blanks):
+    board = np.zeros((9, 9), dtype=int)
+    board[0] = list(range(1, 10))
+    random.shuffle(board[0])
+    # Note: solve will generate the same board for the same initial permutation
+    board = solve(board)
+    for i in range(blanks):
+        board[random.randint(0, 8), random.randint(0, 8)] = 0
     return board
