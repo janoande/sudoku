@@ -1,10 +1,18 @@
 import curses
 import sudoku
 import numpy as np
+import textwrap
 
 
 BOARD_WIDTH = 9*3 + 2  # 9 cells (+2 spaces) + 2 separators + newline
 BOARD_HEIGHT = 9 + 3  # 9 cells + separators
+
+
+def infowrite(win, text):
+    win.clear()
+    for n, line in enumerate(textwrap.wrap(text, width=BOARD_WIDTH)):
+        win.addstr(n, 1, line)
+    win.refresh()
 
 
 def intchar(int):
@@ -29,23 +37,21 @@ def loop(boardwin, infowin, board):
     cur_pos = [0, 0]
     while True:
         draw_board(board, boardwin, cur_pos)
-        if sudoku.validate(board):
-            infowin.clear()
-            infowin.addstr(1, 1, "Puzzle solved!")
-            infowin.refresh()
-        else:
-            infowin.clear()
-            infowin.addstr(1, 1, "No current info")
-            infowin.refresh()
+        if sudoku.complete(board):
+            infowrite(infowin, "Puzzle solved!")
         boardwin.refresh()
         key = boardwin.getkey()
+        infowin.clear()
+        infowin.refresh()
         if key == 'q':
             break
         if key == 'S':
-            board = sudoku.solve(board)
+            try:
+                board = sudoku.solve(board)
+            except Exception as err:
+                infowrite(infowin, str(err))
         if key == 'N':
             board = sudoku.generate(24)  # TODO: select based on difficulty
-        # TODO: skip non-empty spots when moving
         if key == 'h':
             cur_pos[1] = max(0, cur_pos[1] - 1)
         if key == 't':
@@ -55,7 +61,6 @@ def loop(boardwin, infowin, board):
         if key == 's':
             cur_pos[1] = min(8, cur_pos[1] + 1)
         if key.isdigit():
-            # TODO: check for valid number
             board[tuple(cur_pos)] = key
 
 

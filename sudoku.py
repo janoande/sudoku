@@ -5,23 +5,29 @@ import random
 EMPTY = 0
 
 
-def validate(sudoku):
+def valid(sudoku):
     def valid_rows(sudoku):
-        return all([set(row) == set(range(1, 10)) for row in sudoku])
+        for row in sudoku:
+            non_zero_row = row[[n > 0 for n in row]]
+            if len(set(non_zero_row)) != len(non_zero_row):
+                return False
+        return True
 
     def valid_blocks(sudoku):
         for y in range(0, 3):
             for x in range(0, 3):
-                block = sudoku[3*x:3*(x+1), 3*y:3*(y+1)]
-                if set(block.flatten()) != set(range(1, 10)):
+                block = sudoku[3*x:3*(x+1), 3*y:3*(y+1)].flatten()
+                non_zero_block = block[[n > 0 for n in block]]
+                if len(set(non_zero_block)) != len(non_zero_block):
                     return False
         return True
-
-    sudoku = np.asarray(sudoku)
-    return not np.isin(0, sudoku) \
-        and valid_rows(sudoku) \
+    return valid_rows(sudoku) \
         and valid_rows(sudoku.T) \
         and valid_blocks(sudoku)
+
+
+def complete(sudoku):
+    return not np.isin(0, sudoku) and valid(sudoku)
 
 
 # update possible values in empty cells
@@ -73,8 +79,10 @@ def search(board, empty_cells):
 
 
 def solve(board):
-    assert search(board, find_empty_cells(board)), \
-           f"failed to solve puzzle\n{board}"
+    if not valid(board):
+        raise Exception("This board is invalid and cannot be solved.")
+    if not search(board, find_empty_cells(board)):
+        raise Exception("Failed to find a solution.")
     return board
 
 

@@ -46,46 +46,46 @@ puzzle_easy_solved = np.asarray([[4, 1, 6, 2, 7, 9, 8, 3, 5],
                                  [6, 9, 1, 8, 3, 2, 5, 7, 4],
                                  [7, 4, 3, 9, 6, 5, 1, 2, 8]])
 
-puzzle_easy_non_valid1 = np.asarray([[4, 1, 6, 2, 7, 9, 8, 3, 5],
-                                     [3, 8, 5, 1, 4, 6, 2, 9, 7],
-                                     [2, 2, 9, 5, 8, 3, 6, 4, 1],
-                                     [9, 7, 7, 4, 5, 1, 3, 8, 6],
-                                     [5, 3, 8, 6, 9, 7, 4, 1, 2],
-                                     [1, 6, 4, 3, 2, 8, 7, 5, 9],
-                                     [8, 5, 2, 7, 1, 4, 9, 6, 3],
-                                     [6, 9, 1, 8, 3, 2, 5, 7, 4],
-                                     [7, 4, 3, 9, 6, 5, 1, 2, 8]])
+puzzle_easy_invalid = np.asarray([[4, 1, 6, 2, 7, 9, 8, 3, 5],
+                                  [3, 8, 5, 1, 4, 6, 2, 9, 7],
+                                  [2, 2, 9, 5, 8, 3, 6, 4, 1],
+                                  [9, 7, 7, 4, 5, 1, 3, 8, 6],
+                                  [5, 3, 8, 6, 9, 7, 4, 1, 2],
+                                  [1, 6, 4, 3, 2, 8, 7, 5, 9],
+                                  [8, 5, 2, 7, 1, 4, 9, 6, 3],
+                                  [6, 9, 1, 8, 3, 2, 5, 7, 4],
+                                  [7, 4, 3, 9, 6, 5, 1, 2, 8]])
 
-puzzle_easy_non_valid2 = np.asarray([[4, 1, 6, 2, 7, 9, 8, 3, 5],
-                                     [3, 8, 5, 1, 4, 6, 2, 9, 7],
-                                     [2, 7, 9, 5, 8, 3, 6, 4, 1],
-                                     [9, 2, 7, 4, 5, 1, 3, 8, 6],
-                                     [5, 3, 8, 6, 0, 7, 4, 1, 2],
-                                     [1, 6, 4, 3, 2, 8, 7, 5, 9],
-                                     [8, 5, 2, 7, 1, 4, 9, 6, 3],
-                                     [6, 9, 1, 8, 3, 2, 5, 7, 4],
-                                     [7, 4, 3, 9, 6, 5, 1, 2, 8]])
+puzzle_easy_invalid_zero = np.asarray([[4, 1, 6, 2, 7, 9, 8, 3, 5],
+                                       [3, 8, 5, 1, 4, 6, 2, 9, 7],
+                                       [2, 7, 9, 5, 8, 3, 6, 4, 1],
+                                       [9, 2, 7, 4, 5, 1, 3, 8, 6],
+                                       [5, 3, 8, 6, 0, 7, 4, 1, 2],
+                                       [1, 6, 4, 3, 2, 8, 7, 5, 9],
+                                       [8, 5, 2, 7, 1, 4, 9, 6, 3],
+                                       [6, 9, 1, 8, 3, 2, 5, 7, 4],
+                                       [7, 4, 3, 9, 6, 5, 1, 2, 8]])
 
 
 class TestSolver(unittest.TestCase):
 
-    def test_validate(self):
-        self.assertTrue(sudoku.validate(puzzle_easy_solved))
-        self.assertFalse(sudoku.validate(puzzle_easy_non_valid1))
-        self.assertFalse(sudoku.validate(puzzle_easy_non_valid2))
+    def test_complete(self):
+        self.assertTrue(sudoku.complete(puzzle_easy_solved))
+        self.assertFalse(sudoku.complete(puzzle_easy_invalid))
+        self.assertFalse(sudoku.complete(puzzle_easy_invalid_zero))
 
     def test_find_empty(self):
         puzzle1_empty = {(0, 2): {9, 3, 6}, (0, 5): {9, 3}, (0, 7): {3, 6}, (1, 0): {2, 3}, (1, 6): {2}, (2, 0): {2, 3, 6}, (2, 2): {9, 3, 6}, (2, 5): {9, 3}, (2, 6): {1, 2, 6}, (2, 8): {1, 3}, (6, 4): {1, 3}, (6, 7): {3, 6}, (6, 8): {1, 3}, (7, 0): {3, 6}, (7, 2): {1, 3, 6}, (7, 4): {1, 3}, (8, 2): {1, 3}, (8, 6): {1}}
         self.assertEqual(sudoku.find_empty_cells(puzzle_easy), puzzle1_empty)
 
     def test_easy_solve(self):
-        self.assertTrue(sudoku.validate(sudoku.solve(puzzle_easy.copy())))
+        self.assertTrue(sudoku.complete(sudoku.solve(puzzle_easy.copy())))
 
     def test_medium_solve(self):
-        self.assertTrue(sudoku.validate(sudoku.solve(puzzle_medium.copy())))
+        self.assertTrue(sudoku.complete(sudoku.solve(puzzle_medium.copy())))
 
     def test_hard_solve(self):
-        self.assertTrue(sudoku.validate(sudoku.solve(puzzle_hard.copy())))
+        self.assertTrue(sudoku.complete(sudoku.solve(puzzle_hard.copy())))
 
 
 if __name__ == '__main__':
