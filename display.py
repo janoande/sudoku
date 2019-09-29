@@ -15,6 +15,27 @@ def infowrite(win, text):
     win.refresh()
 
 
+def query(infowin, question, options):
+    options_str = [f"{i}. {opt}"
+                   for i, opt in enumerate(options.keys(), start=1)]
+    infowin.clear()
+    infowin.addstr(0, 1, question)
+    for n, optstr in enumerate(options_str, start=1):
+        infowin.addstr(n, 1, optstr)
+    infowin.refresh()
+    while True:
+        key = infowin.getkey()
+        if key == 'q':
+            return None
+        if not key.isdigit():
+            continue
+        key = int(key)
+        if key > 0 and key <= len(options):
+            return [optval
+                    for i, optval in enumerate(options.values(), start=1)
+                    if i == key][0]
+
+
 def intchar(int):
     return chr(ord('0') + int)
 
@@ -35,6 +56,7 @@ def draw_board(board, screen, cur_pos):
 
 def loop(boardwin, infowin, board):
     cur_pos = [0, 0]
+    infowrite(infowin, "Welcome! Hit [N]ew to generate a sudoku board.")
     while True:
         draw_board(board, boardwin, cur_pos)
         if sudoku.complete(board):
@@ -51,7 +73,11 @@ def loop(boardwin, infowin, board):
             except Exception as err:
                 infowrite(infowin, str(err))
         if key == 'N':
-            board = sudoku.generate(24)  # TODO: select based on difficulty
+            difficulty = query(infowin, "Select difficulty", {"Easy": 25, "Medium": 40, "Hard": 60})
+            if difficulty:
+                board = sudoku.generate(difficulty)
+            infowin.clear()
+            infowin.refresh()
         if key == 'h':
             cur_pos[1] = max(0, cur_pos[1] - 1)
         if key == 't':
@@ -78,21 +104,21 @@ def init(stdscr):
     curses.init_pair(1, curses.COLOR_RED, -1)
     curses.init_pair(2, curses.COLOR_BLUE, -1)
     stdscr.addstr("Sudoku ~ "
-                  "move: [h,t,n,s]  "
-                  "select number: [1-9]  "
-                  "clear: 0   "
-                  "solve: [S]  "
-                  "new: [N]  "
-                  "quit: [q]", curses.color_pair(2))
+                  "Move: [h,t,n,s]  "
+                  "Select number: [1-9]  "
+                  "Clear: [0]  "
+                  "Solve: [S]  "
+                  "New: [N]  "
+                  "Quit: [q]", curses.color_pair(2))
     stdscr.refresh()
     sudokuwin.refresh()
     return sudokuwin, infowin
 
 
 def main(stdscr):
-    puzzle = sudoku.generate(24)
+    empty_board = np.zeros((9, 9), dtype=int)
     boardwin, infowin = init(stdscr)
-    loop(boardwin, infowin, puzzle)
+    loop(boardwin, infowin, empty_board)
 
 
 curses.wrapper(main)
